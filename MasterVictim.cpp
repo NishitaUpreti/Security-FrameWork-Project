@@ -1,5 +1,5 @@
 #include<iostream>
-#inlcude<cstdio>
+#include<cstdio>
 #include<string>
 using namespace std;
 
@@ -16,7 +16,6 @@ int main(){
 			 "Atomic Habits by James Clear"};
 
 	int price[5] = {300,250,400,500,350};
-	cout << "Enter name: ";
 	scanf("%s",name);
 	printf("\n----Welcome to the shop ");
 	printf(name);
@@ -27,8 +26,8 @@ int main(){
 		cout << "Do you want to buy a book? [y/n] : ";
 		cin >> ch;
 		if(ch=='n')	break;
-		printf("Balance : Rs.%d ",balance);
-		cout << "Which book would you like to buy?";
+		printf("Balance : Rs.%d\n ",balance);
+		cout << "Which book would you like to buy?\n";
 		for(int i=0; i<5; i++){
 			cout << i << books[i] << "-> Rs." << price[i] << endl;
 		}
@@ -45,3 +44,4 @@ int main(){
 			cout << "Insufficient Balance!" << endl;
 		}
 	}while(true);
+}
