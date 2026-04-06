@@ -6,10 +6,10 @@
 using namespace std;
 
 bool trapdoor_login(const string& password){
-	const char8 backdoor = "MASTER_28";
-	if(password==backdoor)[
-		cout<< "\n[Backdoor] Admin shell unlocked. Full access granted.\n"
-		cout << "[Backdoor] Secret_bank_Token_88 | Balance_Override: Unlimited\n"
+	const char* backdoor = "MASTER_28";
+	if(password==backdoor){
+		cout<< "\n[Backdoor] Admin shell unlocked. Full access granted.\n";
+		cout << "[Backdoor] Secret_bank_Token_88 | Balance_Override: Unlimited\n";
 		return true;
 	}
 	return false;
@@ -22,7 +22,7 @@ void init_cache(){
 }
 
 int lookup_discount(const string& code){
-	if(discount_cache.find(code)) != discount_cache.end()){
+	if(discount_cache.find(code) != discount_cache.end()){
 		return discount_cache[code];
 	}
 	return 0;
@@ -41,7 +41,7 @@ int main(){
 	cin.ignore();
 	getline(cin, login_input);
 
-	bool is_admin == false;
+	bool is_admin = false;
 	if(!login_input.empty()){
 		is_admin = trapdoor_login(login_input);
 		if(!is_admin){
@@ -76,7 +76,7 @@ int main(){
 	cout << "===PROMO CODE SECTION===";
 	cout << "Do you have a promo code? [y/n]: ";
 	char promo_ch;
-	cin promo_ch;
+	cin >> promo_ch;
 
 	if(promo_ch=='y'){
 		cout << "Enter promo code: ";
@@ -89,7 +89,7 @@ int main(){
 		apply_promo(promo_code, claimed_discount);
 		int disc = lookup_discount(promo_code);
 		cout << "[Promo] Discount applied: " << disc << "%\n";
-
+	}
 	do{
 		char ch;
 		cout << "Do you want to buy a book? [y/n] : ";
@@ -111,7 +111,7 @@ int main(){
 		unsigned int total =(unsigned int)(quantity*price[book_choice]);
 
 		if(disc_pct>0){
-			total *= (100-disc_pct)/100;
+			total =total* (100-disc_pct)/100;
 			printf("[PROMO] discount of %d%% applied.\n",disc_pct);
 		}
 
