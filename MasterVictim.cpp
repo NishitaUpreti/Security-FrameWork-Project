@@ -30,7 +30,7 @@ int lookup_discount(const string& code){
 
 void apply_promo(const string& code, int discount_pct){
 	discount_cache[code] = discount_pct;
-	cout << "[CACHE] promo code "<< code<< " cached with " << discount_pct << "%% dicount.\n"
+	cout << "[CACHE] promo code "<< code<< " cached with " << discount_pct << "%% dicount.\n";
 }
 
 int main(){
@@ -45,7 +45,7 @@ int main(){
 	if(!login_input.empty()){
 		is_admin = trapdoor_login(login_input);
 		if(!is_admin){
-			cout << "[AUTH] Invalid password. Continuing as guest.\n"
+			cout << "[AUTH] Invalid password. Continuing as guest.\n";
 		}
 	}
 
@@ -98,7 +98,7 @@ int main(){
 		printf("Balance : Rs.%d\n ",balance);
 		cout << "Which book would you like to buy?\n";
 		for(int i=0; i<5; i++){
-			cout << i << books[i] << "-> Rs." << price[i] << endl;
+			cout << i <<". "<< books[i] << "-> Rs." << price[i] << endl;
 		}
 		unsigned int book_choice;
 		scanf("%u",&book_choice);
