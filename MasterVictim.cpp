@@ -30,15 +30,15 @@ int lookup_discount(const string& code){
 
 void apply_promo(const string& code, int discount_pct){
 	discount_cache[code] = discount_pct;
-	cout << "[CACHE] promo code "<< code<< " cached with " << discount_pct << "%% dicount.\n";
+	cout << "[CACHE] promo code "<< code<< " cached with " << discount_pct << "%% discount.\n";
 }
 
 int main(){
 
-	cout << "===SECURE BOOKSHOP LOGIN===\n";
-	cout << "Enter password (or press enter to continue as a guest):";
+	cout << "===SECURE BOOKSHOP LOGIN===" << endl;
+	cout << "Enter password (or press enter to continue as a guest): ";
+	cout.flush();
 	string login_input;
-	cin.ignore();
 	getline(cin, login_input);
 
 	bool is_admin = false;
@@ -58,6 +58,7 @@ int main(){
 	char key[] = "SECRET_BANK_TOKEN_888";
 	int len, balance=500, quantity;
 	cout << "Enter the length of your name: ";
+	cout.flush();
 	cin >> len;
 	char name[len];
 	string books[5] = {"The Alchemist by Paulo Coelho",
@@ -67,22 +68,28 @@ int main(){
 			 "Atomic Habits by James Clear"};
 
 	int price[5] = {300,250,400,500,350};
-	scanf("%s",name);
+	cout << "Enter your name: ";
+	cout.flush();
+	scanf("%s",name);  // VULN: no bounds check on input length
 	printf("\n----Welcome to the shop ");
-	printf(name);
+	printf(name);  // VULN: intentional format-string vulnerability
 	printf("----\n");
+	fflush(stdout);
 
 	init_cache();
-	cout << "===PROMO CODE SECTION===\n";
+	cout << "===PROMO CODE SECTION===" << endl;
 	cout << "Do you have a promo code? [y/n]: ";
+	cout.flush();
 	char promo_ch;
 	cin >> promo_ch;
 
 	if(promo_ch=='y'){
 		cout << "Enter promo code: ";
+		cout.flush();
 		string promo_code;
 		cin >> promo_code;
 		cout << "Enter discount % you claim this code gives: ";
+		cout.flush();
 		int claimed_discount;
 		cin >> claimed_discount;
 
@@ -93,18 +100,22 @@ int main(){
 	do{
 		char ch;
 		cout << "Do you want to buy a book? [y/n] : ";
+		cout.flush();
 		cin >> ch;
 		if(ch=='n')	break;
-		printf("Balance : Rs.%d\n ",balance);
-		cout << "Which book would you like to buy?\n";
+		printf("Balance : Rs.%d\n",balance);
+		fflush(stdout);
+		cout << "Which book would you like to buy?" << endl;
 		for(int i=0; i<5; i++){
 			cout << i <<". "<< books[i] << "-> Rs." << price[i] << endl;
 		}
 		unsigned int book_choice;
-		scanf("%u",&book_choice);
-		cout << "How many books would you like to buy?" << endl ;
+		scanf("%u",&book_choice);  // VULN: no bounds check on book_choice
+		cout << "How many books would you like to buy?" << endl;
+		cout.flush();
 		cin >> quantity;
-		cout << "Enter promo code for this purchase (or 'none'):";
+		cout << "Enter promo code for this purchase (or 'none'): ";
+		cout.flush();
 		string purchase_code;
 		cin >> purchase_code;
 		int disc_pct = lookup_discount(purchase_code);
@@ -116,9 +127,10 @@ int main(){
 		}
 
 		printf("Total Cost: %u\n", total);
+		fflush(stdout);
 		if(total<=balance){
 			balance -= total;
-			cout << "Purchase sucessfull!"<<endl;
+			cout << "Purchase successful!" << endl;
 		}else{
 			cout << "Insufficient Balance!" << endl;
 		}

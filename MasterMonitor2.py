@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 
 
-KNOWN_BACKDOORS = ["Master_28", "ADMIN", "ROOT", "BACKDOOR"]
+KNOWN_BACKDOORS = ["MASTER_28", "Master_28", "ADMIN", "ROOT", "BACKDOOR"]
 KNOWN_PROMOCODES = {"SAVE10":10, "BOOKFEST":20}
 
 def log_alerts(alert_msg: str, log_path: Path):
@@ -19,8 +19,9 @@ def alert(attack_type: str, detail: str, log_path: Path):
 	time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 	msg = (
 		f"\n{'='*60}\n"
-		f"	Time	:	{time}\n"
-		f"	Details	:	{detail}\n"
+		f"\t[ALERT] {attack_type}\n"
+		f"\tTime	:	{time}\n"
+		f"\tDetails	:	{detail}\n"
 		f"{'='*60}"
 	)
 	log_alerts(msg, log_path)
@@ -29,7 +30,7 @@ def check_trapdoor(password: str, log_path: Path):
 	if not password:
 		return
 	if password in KNOWN_BACKDOORS:
-		alert("TRAPDOOR / BACKDOOR LOGIN ATTEMT",
+		alert("TRAPDOOR / BACKDOOR LOGIN ATTEMPT",
 			f"'{password}' matches a hardcoded backdoor credential.",
 			log_path
 		)
@@ -37,8 +38,8 @@ def check_trapdoor(password: str, log_path: Path):
 	sus_words = ["MASTER","28","ADMIN","ROOT","BACKDOOR","SECRET"]
 	for i in sus_words:
 		if i in password.upper():
-			alert("SUSPICIOUS LOGIN ATTEMT",
-				f"PAssword: '{password}' contains suspicious keyword '{i}'.",
+			alert("SUSPICIOUS LOGIN ATTEMPT",
+				f"Password: '{password}' contains suspicious keyword '{i}'.",
 				log_path
 			)
 			return
@@ -55,7 +56,7 @@ def check_format_string(name: str, log_path:Path):
 	}
 	found = []
 	for spec, defi in dangerous_specifiers.items():
-		if name.lower().count(spec)>0:
+		if name.count(spec)>0:
 			found.append(f"'{spec}'({defi})")
 	if found:
 		alert("FORMAT STRING ATTACK DETECTED",
@@ -113,16 +114,17 @@ def run_monitor(victim_path: Path, log_path:Path):
 		check_trapdoor(login_input, log_path)
 
 		child.expect("Enter the length of your name: ")
-		ui_len = int(input());
-		child.sendline(str(ui_len));
+		ui_len = int(input())
+		child.sendline(str(ui_len))
 
-		ui_name = input("Enter name: ");
-		child.sendline(ui_name);
+		child.expect("Enter your name: ")
+		ui_name = input()
+		child.sendline(ui_name)
 
 		check_overflow(ui_len, ui_name, log_path)
 		check_format_string(ui_name, log_path)
 
-		child.expect(r"Do you have a promo code: ")
+		child.expect(r"Do you have a promo code\?")
 		promo_choice = input()
 		child.sendline(promo_choice)
 		if promo_choice == 'y':
@@ -140,7 +142,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 
 
 		while True:
-			child.expect("Do you want to buy a book? [y/n] : ")
+			child.expect(r"Do you want to buy a book\?")
 			ui_ch = input()
 			child.sendline(ui_ch)
 
@@ -159,7 +161,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 
 			check_integer_overflow(ui_quantity, log_path)
 
-			child.expect(r"Enter promo code for this purchase (or 'none'): ")
+			child.expect(r"Enter promo code for this purchase")
 			purchase_code = input()
 			child.sendline(purchase_code)
 
@@ -182,8 +184,8 @@ def run_monitor(victim_path: Path, log_path:Path):
 		#Typo/timeout:- the python script got stuck waiting for the C++ program.
 
 	except Exception as e:
-		print(f"\n[!] An error occured:  {e}")
-		#Crash detector:- standerd exception handling.
+		print(f"\n[!] An error occurred:  {e}")
+		#Crash detector:- standard exception handling.
 	finally:
 		print(f"\n[*]Session ended. Alerts logged to {log_path}\n")
 
