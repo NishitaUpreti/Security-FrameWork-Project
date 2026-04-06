@@ -4,8 +4,6 @@ import sys
 import argparse
 from pathlib import Path
 
-#VICTIM_PATH = "/home/nishita_upreti/SecurityProject/victim"
-#LOG_PATH = "/home/nishita_upreti/SecurityProject/security_alerts"
 
 KNOWN_BACKDOORS = ["Master_28", "ADMIN", "ROOT", "BACKDOOR"]
 KNOWN_PROMOCODES = {"SAVE10":10, "BOOKFEST":20}
@@ -124,7 +122,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 		check_overflow(ui_len, ui_name, log_path)
 		check_format_string(ui_name, log_path)
 
-		child.expect(r"Do you have a promo code\?\[y/n\]: ")
+		child.expect(r"Do you have a promo code? [y/n]: ")
 		promo_choice = input()
 		child.sendline(promo_choice)
 		if promo_choice == 'y':
@@ -132,7 +130,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 			promo_code = input()
 			child.sendline(promo_code)
 
-			child.expect("Enter discount % you claim this code give: ")
+			child.expect("Enter discount % you claim this code gives: ")
 			claimed_discount = int(input())
 			child.sendline(str(claimed_discount))
 
@@ -142,7 +140,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 
 
 		while True:
-			child.expect("Do you want to buy a book\? \[y/n\]: ")
+			child.expect("Do you want to buy a book? [y/n] : ")
 			ui_ch = input()
 			child.sendline(ui_ch)
 
@@ -161,7 +159,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 
 			check_integer_overflow(ui_quantity, log_path)
 
-			child.expect(r"Enter promo code for this purchase \(or 'none'\): ")
+			child.expect(r"Enter promo code for this purchase (or 'none'): ")
 			purchase_code = input()
 			child.sendline(purchase_code)
 
@@ -192,18 +190,18 @@ def run_monitor(victim_path: Path, log_path:Path):
 
 
 if __name__ == "__main__":
-	parse = argparse.ArgumentParser(description = "Security monitor - Detects attacks against MasterVictim in real-time.")
+	parser = argparse.ArgumentParser(description = "Security monitor - Detects attacks against MasterVictim in real-time.")
 	parser.add_argument(
 		"--victim",
 		type=Path,
 		default=Path(__file__).parent/"victim",
-		help = "Path to the compiled victim binary (default: ./vixtim next to this script)"
+		help = "Path to the compiled victim binary (default: ./victim next to this script)"
 	)
 	parser.add_argument(
 		"--log",
-		type:Path,
+		type=Path,
 		default=Path(__file__).parent /"security_alerts.log",
-		help="Path to the alert log file (default: .security_alerts.log next to this script)"
+		help="Path to the alert log file (default: ./security_alerts.log next to this script)"
 	)
 	args = parser.parse_args()
 	args.log.parent.mkdir(parents=True, exist_ok=True)

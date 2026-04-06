@@ -73,7 +73,7 @@ int main(){
 	printf("----\n");
 
 	init_cache();
-	cout << "===PROMO CODE SECTION===";
+	cout << "===PROMO CODE SECTION===\n";
 	cout << "Do you have a promo code? [y/n]: ";
 	char promo_ch;
 	cin >> promo_ch;
