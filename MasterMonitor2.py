@@ -1,4 +1,3 @@
-import sys
 import pexpect
 from datetime import datetime
 import sys
@@ -11,25 +10,24 @@ from pathlib import Path
 KNOWN_BACKDOORS = ["Master_28", "ADMIN", "ROOT", "BACKDOOR"]
 KNOWN_PROMOCODES = {"SAVE10":10, "BOOKFEST":20}
 
-def lof_alerts(alert_msg: str, log_path: Path):
+def log_alerts(alert_msg: str, log_path: Path):
 	print(alert_msg)
 	with open(log_path, "a") as f:
 		f.write(alert_msg + "\n")
 
 
 
-def alert(attack_type: str, detail: str, log_path: PATH):
-	time = datetime.now()
+def alert(attack_type: str, detail: str, log_path: Path):
+	time = datetime.now().strftime(%Y-%m-%d %H:%M:%S)
 	msg = (
-		f"\n{'='*60}\n",
-		f"	Time	:	{ts}\n",
-		f"	Details	:	{detail}\n",
-		f"	Recovery:	{recovery}\n",
+		f"\n{'='*60}\n"
+		f"	Time	:	{time}\n"
+		f"	Details	:	{detail}\n"
 		f"{'='*60}"
 	)
 	log_alerts(msg, log_path)
 
-def check trapdoor(password: str, log_path: Path):
+def check_trapdoor(password: str, log_path: Path):
 	if not password:
 		return
 	if password in KNOWN_BACKDOORS:
@@ -59,7 +57,7 @@ def check_format_string(name: str, log_path:Path):
 	}
 	found = []
 	for spec, defi in dangerous_specifiers.items():
-		if name.lower.count(spec)>0:
+		if name.lower().count(spec)>0:
 			found.append(f"'{spec}'({defi})")
 	if found:
 		alert("FORMAT STRING ATTACK DETECTED",
@@ -77,18 +75,18 @@ def check_overflow(declared_len:int, name:str, log_path:Path):
 def check_cache_poisoning(code: str, discount:int, log_path:Path):
 	if code in ("none",""):
 		return
-	if code not in KNOWN_PROMO_CODES:
+	if code not in KNOWN_PROMOCODES:
 		alert("CACHE POISONING - UNKNOWN PROMO CODE",
 			f"Code '{code}' is not in the legitimate promo registry",
 			log_path
 		)
 	else:
-		legitimate = KNOWN_PROMO_CODES[code]
+		legitimate = KNOWN_PROMOCODES[code]
 		if discount != legitimate:
-		alert("CACHE POISONING : VALUE TAMPERING",
-			f"Code: '{code}' is legitimate but the claimed discount: '{discount}' is wrong",
-			log_path
-		)
+			alert("CACHE POISONING : VALUE TAMPERING",
+				f"Code: '{code}' is legitimate but the claimed discount: '{discount}' is wrong",
+				log_path
+			)
 
 def check_integer_overflow(qty: int, log_path:Path):
 	if qty>17179870:
@@ -98,9 +96,9 @@ def check_integer_overflow(qty: int, log_path:Path):
 		)
 
 def run_monitor(victim_path: Path, log_path:Path):
-	printf("\n" + "="*60)
-	printf("	SECURITY MONITOR - REAL-TIME ATTACK DETECTION	"\n")
-	printf("\n" + "="*60)
+	print("\n" + "="*60)
+	print("	SECURITY MONITOR - REAL-TIME ATTACK DETECTION	"\n")
+	print("\n" + "="*60)
 
 	if not victim_path.exists():
 		print(f"[ERROR] Victim binary not found: {victim_path}")
@@ -133,7 +131,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 
 			child.expect("Enter discount % you claim this code give: ")
 			claimed_discount = int(input())
-			child.sendline(claimed_discount)
+			child.sendline(str(claimed_discount))
 
 			check_cache_poisoning(promo_code,claimed_discount,log_path)
 
@@ -166,7 +164,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 
 			if purchase_code != "none":
 				if purchase_code not in KNOWN_PROMO_CODES:
-					alerts("CACHE POISONING - POISONED CODE USED AT CHECKOUT',
+					alert("CACHE POISONING - POISONED CODE USED AT CHECKOUT',
 						f"Code: '{purchase_code}'used at checkout but not in legitimate registry of promo codes",
 						log_path
 					)
