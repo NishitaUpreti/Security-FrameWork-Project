@@ -112,7 +112,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 		child.sendline(login_input)
 		check_trapdoor(login_input, log_path)
 
-		child.expect("Enter the length of your name: ");
+		child.expect("Enter the length of your name: ")
 		ui_len = int(input());
 		child.sendline(str(ui_len));
 
@@ -122,7 +122,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 		check_overflow(ui_len, ui_name, log_path)
 		check_format_string(ui_name, log_path)
 
-		child.expect(r"Do you have a promo code? [y/n]: ")
+		child.expect(r"Do you have a promo code: ")
 		promo_choice = input()
 		child.sendline(promo_choice)
 		if promo_choice == 'y':
