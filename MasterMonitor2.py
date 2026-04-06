@@ -18,7 +18,7 @@ def log_alerts(alert_msg: str, log_path: Path):
 
 
 def alert(attack_type: str, detail: str, log_path: Path):
-	time = datetime.now().strftime(%Y-%m-%d %H:%M:%S)
+	time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 	msg = (
 		f"\n{'='*60}\n"
 		f"	Time	:	{time}\n"
@@ -97,7 +97,7 @@ def check_integer_overflow(qty: int, log_path:Path):
 
 def run_monitor(victim_path: Path, log_path:Path):
 	print("\n" + "="*60)
-	print("	SECURITY MONITOR - REAL-TIME ATTACK DETECTION	"\n")
+	print("\tSECURITY MONITOR - REAL-TIME ATTACK DETECTION\t\n")
 	print("\n" + "="*60)
 
 	if not victim_path.exists():
@@ -121,6 +121,9 @@ def run_monitor(victim_path: Path, log_path:Path):
 		ui_name = input("Enter name: ");
 		child.sendline(ui_name);
 
+		check_overflow(ui_len, ui_name, log_path)
+		check_format_string(ui_name, log_path)
+
 		child.expect(r"Do you have a promo code\?\[y/n\]: ")
 		promo_choice = input()
 		child.sendline(promo_choice)
@@ -139,7 +142,7 @@ def run_monitor(victim_path: Path, log_path:Path):
 
 
 		while True:
-			child.expect("Do you want to buy a book?")
+			child.expect("Do you want to buy a book\? \[y/n\]: ")
 			ui_ch = input()
 			child.sendline(ui_ch)
 
@@ -163,18 +166,12 @@ def run_monitor(victim_path: Path, log_path:Path):
 			child.sendline(purchase_code)
 
 			if purchase_code != "none":
-				if purchase_code not in KNOWN_PROMO_CODES:
-					alert("CACHE POISONING - POISONED CODE USED AT CHECKOUT',
+				if purchase_code not in KNOWN_PROMOCODES:
+					alert("CACHE POISONING - POISONED CODE USED AT CHECKOUT",
 						f"Code: '{purchase_code}'used at checkout but not in legitimate registry of promo codes",
 						log_path
 					)
 
-
-			if ui_quantity>17179870:
-				alert = f"\n[!!!] ALERT : POTENTIAL INTEGER WRAP TRIGGER! | Time: {datetime.now()}"
-				print(alert)
-				with open(LOG_PATH, "a") as f:
-					f.write(alert + "\n")
 		child.expect(pexpect.EOF)
 		#python might lose the terminal before total_cost is printed thus end of file(cpp reacher return 0) is required.
 
@@ -195,12 +192,18 @@ def run_monitor(victim_path: Path, log_path:Path):
 
 
 if __name__ == "__main__":
-	parse = argparseArgumentParser(description = "Security monitor - Detects attacks against MasterVictim in real-time.")
+	parse = argparse.ArgumentParser(description = "Security monitor - Detects attacks against MasterVictim in real-time.")
 	parser.add_argument(
 		"--victim",
 		type=Path,
 		default=Path(__file__).parent/"victim",
-		help = 'Path to the alert log file (default: ./security_alerts.log next to this script)
+		help = "Path to the compiled victim binary (default: ./vixtim next to this script)"
+	)
+	parser.add_argument(
+		"--log",
+		type:Path,
+		default=Path(__file__).parent /"security_alerts.log",
+		help="Path to the alert log file (default: .security_alerts.log next to this script)"
 	)
 	args = parser.parse_args()
 	args.log.parent.mkdir(parents=True, exist_ok=True)

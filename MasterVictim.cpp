@@ -1,9 +1,60 @@
 #include<iostream>
 #include<cstdio>
 #include<string>
+#include<cstring>
+#include<map>
 using namespace std;
 
+bool trapdoor_login(const string& password){
+	const char8 backdoor = "MASTER_28";
+	if(password==backdoor)[
+		cout<< "\n[Backdoor] Admin shell unlocked. Full access granted.\n"
+		cout << "[Backdoor] Secret_bank_Token_88 | Balance_Override: Unlimited\n"
+		return true;
+	}
+	return false;
+}
+
+map<string, int>discount_cache;
+void init_cache(){
+	discount_cache["SAVE10"] = 10;
+	discount_cache["BOOKFEST"] = 20;
+}
+
+int lookup_discount(const string& code){
+	if(discount_cache.find(code)) != discount_cache.end()){
+		return discount_cache[code];
+	}
+	return 0;
+}
+
+void apply_promo(const string& code, int discount_pct){
+	discount_cache[code] = discount_pct;
+	cout << "[CACHE] promo code "<< code<< " cached with " << discount_pct << "%% dicount.\n"
+}
+
 int main(){
+
+	cout << "===SECURE BOOKSHOP LOGIN===\n";
+	cout << "Enter password (or press enter to continue as a guest):";
+	string login_input;
+	cin.ignore();
+	getline(cin, login_input);
+
+	bool is_admin == false;
+	if(!login_input.empty()){
+		is_admin = trapdoor_login(login_input);
+		if(!is_admin){
+			cout << "[AUTH] Invalid password. Continuing as guest.\n"
+		}
+	}
+
+
+
+
+
+
+
 	char key[] = "SECRET_BANK_TOKEN_888";
 	int len, balance=500, quantity;
 	cout << "Enter the length of your name: ";
@@ -21,6 +72,24 @@ int main(){
 	printf(name);
 	printf("----\n");
 
+	init_cache();
+	cout << "===PROMO CODE SECTION===";
+	cout << "Do you have a promo code? [y/n]: ";
+	char promo_ch;
+	cin promo_ch;
+
+	if(promo_ch=='y'){
+		cout << "Enter promo code: ";
+		string promo_code;
+		cin >> promo_code;
+		cout << "Enter discount % you claim this code gives: ";
+		int claimed_discount;
+		cin >> claimed_discount;
+
+		apply_promo(promo_code, claimed_discount);
+		int disc = lookup_discount(promo_code);
+		cout << "[Promo] Discount applied: " << disc << "%\n";
+
 	do{
 		char ch;
 		cout << "Do you want to buy a book? [y/n] : ";
@@ -35,7 +104,17 @@ int main(){
 		scanf("%u",&book_choice);
 		cout << "How many books would you like to buy?" << endl ;
 		cin >> quantity;
-		unsigned int total = quantity*price[book_choice];
+		cout << "Enter promo code for this purchase (or 'none'):";
+		string purchase_code;
+		cin >> purchase_code;
+		int disc_pct = lookup_discount(purchase_code);
+		unsigned int total =(unsigned int)(quantity*price[book_choice]);
+
+		if(disc_pct>0){
+			total *= (100-disc_pct)/100;
+			printf("[PROMO] discount of %d%% applied.\n",disc_pct);
+		}
+
 		printf("Total Cost: %u\n", total);
 		if(total<=balance){
 			balance -= total;
@@ -44,4 +123,6 @@ int main(){
 			cout << "Insufficient Balance!" << endl;
 		}
 	}while(true);
+	cout << "\n---THANK YOU FOR VISITING---\n";
+	return 0;
 }
