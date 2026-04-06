@@ -1,16 +1,120 @@
 import sys
 import pexpect
 from datetime import datetime
+import sys
+import argparse
+from pathlib import Path
 
-VICTIM_PATH = "/home/nishita_upreti/SecurityProject/victim"
-LOG_PATH = "/home/nishita_upreti/SecurityProject/security_alerts"
+#VICTIM_PATH = "/home/nishita_upreti/SecurityProject/victim"
+#LOG_PATH = "/home/nishita_upreti/SecurityProject/security_alerts"
 
-def run_monitor():
+KNOWN_BACKDOORS = ["Master_28", "ADMIN", "ROOT", "BACKDOOR"]
+KNOWN_PROMOCODES = {"SAVE10":10, "BOOKFEST":20}
+
+def lof_alerts(alert_msg: str, log_path: Path):
+	print(alert_msg)
+	with open(log_path, "a") as f:
+		f.write(alert_msg + "\n")
+
+
+
+def alert(attack_type: str, detail: str, log_path: PATH):
+	time = datetime.now()
+	msg = (
+		f"\n{'='*60}\n",
+		f"	Time	:	{ts}\n",
+		f"	Details	:	{detail}\n",
+		f"	Recovery:	{recovery}\n",
+		f"{'='*60}"
+	)
+	log_alerts(msg, log_path)
+
+def check trapdoor(password: str, log_path: Path):
+	if not password:
+		return
+	if password in KNOWN_BACKDOORS:
+		alert("TRAPDOOR / BACKDOOR LOGIN ATTEMT",
+			f"'{password}' matches a hardcoded backdoor credential.",
+			log_path
+		)
+		return
+	sus_words = ["MASTER","28","ADMIN","ROOT","BACKDOOR","SECRET"]
+	for i in sus_words:
+		if i in password.upper():
+			alert("SUSPICIOUS LOGIN ATTEMT",
+				f"PAssword: '{password}' contains suspicious keyword '{i}'.",
+				log_path
+			)
+			return
+
+def check_format_string(name: str, log_path:Path):
+	dangerous_specifiers = {
+		"%p":"Pointer /address leak",
+		"%x":"hex memory dump",
+		"%s":"string memory read(can crash)",
+		"%n":"Write to arbitrary memory(critical crash)",
+		"%hn":"half-word write (critical)",
+		"%d":"integer read from stack",
+		"%u":"unsigned int read from stack"
+	}
+	found = []
+	for spec, defi in dangerous_specifiers.items():
+		if name.lower.count(spec)>0:
+			found.append(f"'{spec}'({defi})")
+	if found:
+		alert("FORMAT STRING ATTACK DETECTED",
+			f"Name field contains specifiers {', '.join(found)}.",
+			log_path
+		)
+
+def check_overflow(declared_len:int, name:str, log_path:Path):
+	if declared_len < len(name):
+		alert("OVERFLOW ATTEMPT DETECTED",
+			f"Declared length is '{declared_len}' but name has '{len(name)}' chars.",
+			log_path
+		)
+
+def check_cache_poisoning(code: str, discount:int, log_path:Path):
+	if code in ("none",""):
+		return
+	if code not in KNOWN_PROMO_CODES:
+		alert("CACHE POISONING - UNKNOWN PROMO CODE",
+			f"Code '{code}' is not in the legitimate promo registry",
+			log_path
+		)
+	else:
+		legitimate = KNOWN_PROMO_CODES[code]
+		if discount != legitimate:
+		alert("CACHE POISONING : VALUE TAMPERING",
+			f"Code: '{code}' is legitimate but the claimed discount: '{discount}' is wrong",
+			log_path
+		)
+
+def check_integer_overflow(qty: int, log_path:Path):
+	if qty>17179870:
+		alert("Integer OVERFLOW/ WRAP INTEGER",
+			f"Quantity '{qty}' exceeds safe multiplication threshold",
+			log_path
+		)
+
+def run_monitor(victim_path: Path, log_path:Path):
+	printf("\n" + "="*60)
+	printf("	SECURITY MONITOR - REAL-TIME ATTACK DETECTION	"\n")
+	printf("\n" + "="*60)
+
+	if not victim_path.exists():
+		print(f"[ERROR] Victim binary not found: {victim_path}")
+		print("		Compile with: g++ -o victim MasterVictim.cpp")
+		sys.exit(1)
 
 	try:
-		child = pexpect.spawn(VICTIM_PATH, encoding='utf-8')
+		child = pexpect.spawn(str(victim_path), encoding='utf-8', timeout=30)
 		child.logfile_read = sys.stdout
 
+		child.expect("Enter password")
+		login_input = input()
+		child.sendline(login_input)
+		check_trapdoor(login_input, log_path)
 
 		child.expect("Enter the length of your name: ");
 		ui_len = int(input());
@@ -19,18 +123,22 @@ def run_monitor():
 		ui_name = input("Enter name: ");
 		child.sendline(ui_name);
 
+		child.expect(r"Do you have a promo code\?\[y/n\]: ")
+		promo_choice = input()
+		child.sendline(promo_choice)
+		if promo_choice == 'y':
+			child.expect("Enter promo code: ")
+			promo_code = input()
+			child.sendline(promo_code)
 
-		if ui_len < len(ui_name):
-			alert = f"\n[!!!] ALERT : POTENTIAL OVERFLOW ATEMPT! | Time: {datetime.now()}"
-			print(alert)
-			with open(LOG_PATH, "a") as f:
-				f.write(alert + "\n")
+			child.expect("Enter discount % you claim this code give: ")
+			claimed_discount = int(input())
+			child.sendline(claimed_discount)
 
-		if ui_name.count("%p") > 2 or ui_name.count("%x")>2:
-			alert = f"\n[!!!] ALERT : POTENTIAL FORMAT STRING ATTACK! | Time: {datetime.now()}"
-			print(alert)
-			with open(LOG_PATH, "a") as f:
-				f.write(alert + "\n")
+			check_cache_poisoning(promo_code,claimed_discount,log_path)
+
+
+
 
 		while True:
 			child.expect("Do you want to buy a book?")
@@ -49,6 +157,20 @@ def run_monitor():
 			child.expect("How many books would you like to buy?")
 			ui_quantity = int(input())
 			child.sendline(str(ui_quantity))
+
+			check_integer_overflow(ui_quantity, log_path)
+
+			child.expect(r"Enter promo code for this purchase \(or 'none'\): ")
+			purchase_code = input()
+			child.sendline(purchase_code)
+
+			if purchase_code != "none":
+				if purchase_code not in KNOWN_PROMO_CODES:
+					alerts("CACHE POISONING - POISONED CODE USED AT CHECKOUT',
+						f"Code: '{purchase_code}'used at checkout but not in legitimate registry of promo codes",
+						log_path
+					)
+
 
 			if ui_quantity>17179870:
 				alert = f"\n[!!!] ALERT : POTENTIAL INTEGER WRAP TRIGGER! | Time: {datetime.now()}"
@@ -69,6 +191,29 @@ def run_monitor():
 	except Exception as e:
 		print(f"\n[!] An error occured:  {e}")
 		#Crash detector:- standerd exception handling.
+	finally:
+		print(f"\n[*]Session ended. Alerts logged to {log_path}\n")
+
+
 
 if __name__ == "__main__":
-	run_monitor()
+	parse = argparseArgumentParser(description = "Security monitor - Detects attacks against MasterVictim in real-time.")
+	parser.add_argument(
+		"--victim",
+		type=Path,
+		default=Path(__file__).parent/"victim",
+		help = 'Path to the alert log file (default: ./security_alerts.log next to this script)
+	)
+	args = parser.parse_args()
+	args.log.parent.mkdir(parents=True, exist_ok=True)
+	run_monitor(args.victim,args.log)
+
+
+
+
+
+
+
+
+
+
